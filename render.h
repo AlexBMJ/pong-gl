@@ -42,8 +42,8 @@ void render(Object* gameobject, int fillmode, unsigned int shader_program) {
     mat4 trans = GLM_MAT4_IDENTITY_INIT;
     glm_ortho_default(((float)SCR_WIDTH/SCR_HEIGHT), trans);
     glm_translate(trans, (vec3){gameobject->xpos, gameobject->ypos, 0.0f});
-    // glm_translate(trans, (vec3){(float)((int)glfwGetTime())/10.0f,0.0f,0.0f});
-    // glm_rotate(trans, glfwGetTime(), GLM_ZUP);
+    glm_rotate(trans, gameobject->rot, GLM_ZUP);
+
     // glm_scale(trans, (vec3){0.2f, 0.2f, 0.2f});
 
     useShader(shader_program, trans[0]);

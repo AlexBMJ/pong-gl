@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <cglm/cglm.h>
 #include <cglm/call.h>
@@ -15,6 +16,7 @@
 #include "gameobjects.h"
 
 #include "render.h"
+#include "color.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -33,6 +35,9 @@ Ball* ball;
 Object* game_border;
 
 int main() {
+    // seed random numbers
+    srand(time(0));
+
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -56,10 +61,11 @@ int main() {
     }
 
     unsigned int shader_program = loadShaders("./resources/shaders/");
-    Object game_border = {colorRectOutline(1.2f, 1.0f, 0.01f, (vec3){1.0f, 1.0f, 1.0f}), 0.0f, 0.0f};
-    player1 = mkPlayer(-0.95f, 0.0f, 0.02f, 0.25f, (vec3){1.0f,1.0f,1.0f});
-    player2 = mkPlayer(0.95f, 0.0f, 0.02f, 0.25f, (vec3){1.0f,1.0f,1.0f});
-    ball = mkBall(0.0f, 0.0f, 0.01f, 0.03f, 0.02f, (vec3){1.0f,1.0f,1.0f});
+    Object game_border = {colorRectOutline(1.2f, 1.0f, 0.01f, WHITE), 0.0f, 0.0f};
+    Object center_line = {colorDashedLine(2.0f, 0.005f, 20, 0.01f, WHITE), 0.0f, 0.0f};
+    player1 = mkPlayer(-0.95f, 0.0f, 0.02f, 0.25f, WHITE);
+    player2 = mkPlayer(0.95f, 0.0f, 0.02f, 0.25f, WHITE);
+    ball = mkBall(0.0f, 0.0f, copysignf(0.01f,sinf(rand())), sinf(rand())/100.0f, 0.02f, WHITE);
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -69,6 +75,7 @@ int main() {
         render((Object*)player2, FILLMODE, shader_program);
         render((Object*)ball, FILLMODE, shader_program);
         render(&game_border, FILLMODE, shader_program);
+        render(&center_line, FILLMODE, shader_program);
         update();
 
         glfwSwapBuffers(window);

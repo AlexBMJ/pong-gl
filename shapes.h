@@ -94,11 +94,43 @@ VertexObject* colorRectOutline(float width, float height, float border, vec3 col
     return vertobj;
 }
 
+VertexObject* colorDashedLine(float length, float width, int dashes, float spacing, vec3 color) {
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    float vertices[dashes*24];
+    unsigned int indices[dashes*6];
+
+    float full_dash = length/(float)dashes;
+    float half_length = (length/2.0f);
+    spacing /= 2.0f;
+
+    for (int i=0; i<dashes; i++) {
+        float new_vertices[] = {
+            // positions                                   // colors         
+             width, full_dash*(i+1)-spacing-half_length,  0.0f, color[0], color[1], color[2],  // 0 top right
+             width, full_dash*i+spacing-half_length,      0.0f, color[0], color[1], color[2],  // 1 bottom right
+            -width, full_dash*i+spacing-half_length,      0.0f, color[0], color[1], color[2],  // 2 bottom left
+            -width, full_dash*(i+1)-spacing-half_length,  0.0f, color[0], color[1], color[2],  // 3 top left
+        };
+
+        unsigned int new_indices[] = {
+            (i*4),   (i*4)+1, (i*4)+3, // first triangle
+            (i*4)+1, (i*4)+2, (i*4)+3, // second triangle
+        };
+
+        memcpy(vertices+(i*24), new_vertices, sizeof(new_vertices));
+        memcpy(indices+(i*6),   new_indices,  sizeof(new_indices));
+    }
+    
+    VertexObject* vertobj = malloc(sizeof(VertexObject));
+    vertobj->vert_count = sizeof(indices)/sizeof(unsigned int);
+    initVertArray(vertobj, vertices, indices, sizeof(vertices), sizeof(indices));
+    
+    return vertobj;
+}
 
 
 VertexObject* textureRect() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
     float vertices[] = {
         // positions          // colors           // texture coords
          0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
