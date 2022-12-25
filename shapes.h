@@ -3,16 +3,37 @@
 
 #include <glad/glad.h>
 
-struct VertexObject {
-    unsigned int VBO, VAO, EBO;
+typedef struct VertexObject {
+    unsigned int VBO, VAO, EBO; // Vertex Buffer, Vertex Array, Element Buffer
     unsigned int texture;
-};
+    unsigned int vert_count;
+} VertexObject;
 
-struct VertexObject* colorRect(float width, float height, vec3 color) {
+void initVertArray(VertexObject* vertobj, float vertices[], unsigned int indices[], unsigned long vertices_size, unsigned long indices_size) {
+    glGenVertexArrays(1, &vertobj->VAO);
+    glGenBuffers(1, &vertobj->VBO);
+    glGenBuffers(1, &vertobj->EBO);
+
+    glBindVertexArray(vertobj->VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertobj->VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices_size, vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertobj->EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+}
+
+VertexObject* colorRect(float width, float height, vec3 color) {
     // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
     float vertices[] = {
-        // positions          // colors         
+        // positions             // colors         
          width,  height, 0.0f,   color[0], color[1], color[2],  // top right
          width, -height, 0.0f,   color[0], color[1], color[2],  // bottom right
         -width, -height, 0.0f,   color[0], color[1], color[2],  // bottom left
@@ -23,33 +44,59 @@ struct VertexObject* colorRect(float width, float height, vec3 color) {
         1, 2, 3  // second triangle
     };
     
-    struct VertexObject* vertobj = malloc(sizeof(struct VertexObject));
+    VertexObject* vertobj = malloc(sizeof(VertexObject));
+    vertobj->vert_count = sizeof(indices)/sizeof(unsigned int);
+    initVertArray(vertobj, vertices, indices, sizeof(vertices), sizeof(indices));
+    
+    return vertobj;
+}
 
-    glGenVertexArrays(1, &vertobj->VAO);
-    glGenBuffers(1, &vertobj->VBO);
-    glGenBuffers(1, &vertobj->EBO);
+VertexObject* colorRectOutline(float width, float height, float border, vec3 color) {
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    float vertices[] = {
+        // TOP
+        // positions                        // colors         
+         width, height,               0.0f, color[0], color[1], color[2],  // 0 top right
+         width-border, height-border, 0.0f, color[0], color[1], color[2],  // 1 bottom right
+        -width+border, height-border, 0.0f, color[0], color[1], color[2],  // 2 bottom left
+        -width, height,               0.0f, color[0], color[1], color[2],  // 3 top left
 
-    glBindVertexArray(vertobj->VAO);
+        // BOTTOM
+        // positions                         // colors         
+         width-border, -height+border, 0.0f, color[0], color[1], color[2],  // 4 top right
+         width, -height,               0.0f, color[0], color[1], color[2],  // 5 bottom right
+        -width, -height,               0.0f, color[0], color[1], color[2],  // 6 bottom left
+        -width+border, -height+border, 0.0f, color[0], color[1], color[2],  // 7 top left
+    };
+    unsigned int indices[] = {
+        // TOP
+        0, 1, 3, // first triangle
+        1, 2, 3, // second triangle
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertobj->VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        // RIGHT
+        0, 5, 1, // first triangle
+        5, 4, 1, // second triangle
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertobj->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        // BOTTOM
+        4, 5, 7, // first triangle
+        5, 6, 7, // second triangle
 
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+        // LEFT
+        7, 6, 3, // first triangle
+        3, 2, 7, // second triangle
+
+    };
+    
+    VertexObject* vertobj = malloc(sizeof(VertexObject));
+    vertobj->vert_count = sizeof(indices)/sizeof(unsigned int);
+    initVertArray(vertobj, vertices, indices, sizeof(vertices), sizeof(indices));
     
     return vertobj;
 }
 
 
 
-struct VertexObject* textureRect() {
+VertexObject* textureRect() {
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
@@ -64,7 +111,7 @@ struct VertexObject* textureRect() {
         1, 2, 3  // second triangle
     };
     
-    struct VertexObject* vertobj = malloc(sizeof(struct VertexObject));
+    struct VertexObject* vertobj = malloc(sizeof(VertexObject));
 
     glGenVertexArrays(1, &vertobj->VAO);
     glGenBuffers(1, &vertobj->VBO);
